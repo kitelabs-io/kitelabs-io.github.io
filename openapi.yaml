@@ -1,0 +1,355 @@
+openapi: 3.1.0
+info:
+  title: Kaia Aggregator APIs
+  description: |
+    Kaia Aggregator APIs
+  license:
+    name: Apache 2.0
+    url: "https://www.apache.org/licenses/LICENSE-2.0.html"
+  version: "1.0.0"
+  contact:
+    name: kitelabs # TODO: Update this
+servers:
+  - url: "http://kaia.kitelabs.io"
+tags:
+  - name: Kaia Aggregator
+    description: APIs for Kaia Aggregator
+
+paths:
+  "/v1/quote":
+    get:
+      tags:
+        - Kaia Aggregator
+      summary: "[V1] Get Quote"
+      description: Obtain the quote details when exchanging between two tokens.
+      operationId: getQuote
+      responses:
+        "200":
+          description: Successfully found quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetQuoteSuccess"
+                example:
+                  $ref: "#/components/examples/SampleGetQuoteResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                example:
+                  $ref: "#/components/errors/4001"
+        "499":
+          $ref: "#/components/errors/4990"
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: srcToken
+          required: true
+          description: |
+            Address of the input token
+            `0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE` in case of native token
+        - schema:
+            type: string
+          in: query
+          name: dstToken
+          description: |
+            Address of the output token
+            `0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE` in case of native token
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: amount
+          description: Amount of the input token (in wei)
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: includedSources
+          description: Sources to included when find quote, separated by comma
+        - schema:
+            type: string
+          in: query
+          name: excludedSources
+          description: Sources to excluded when find quote, separated by comma
+
+  "/v1/swap":
+    get:
+      tags:
+        - Kaia Aggregator
+      summary: "[V1] Get Swap"
+      description: Obtain the quote details and transaction information necessary to execute a token exchange.
+      operationId: getSwap
+      responses:
+        "200":
+          description: Successfully found swap
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetSwapSuccess"
+                example:
+                  $ref: "#/components/examples/SampleGetSwapResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                example:
+                  $ref: "#/components/errors/4001"
+        "499":
+          $ref: "#/components/errors/4990"
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: srcToken
+          required: true
+          description: |
+            Address of the input token
+            `0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE` in case of native token
+        - schema:
+            type: string
+          in: query
+          name: dstToken
+          description: |
+            Address of the output token
+            `0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE` in case of native token
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: amount
+          description: Amount of the input token (in wei)
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: origin
+          description: An EOA address that initiate the transaction
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: slippage
+          description: This specifies the maximum slippage the user is willing to tolerate for their trade, measured in basis points (bip). The acceptable range is [0, 2000], where a value of 10 corresponds to 0.1%. If no value is specified, slippage defaults to 0.
+        - schema:
+            type: string
+          in: query
+          name: includedSources
+          description: Sources to included when find quote, separated by comma
+        - schema:
+            type: string
+          in: query
+          name: excludedSources
+          description: Sources to excluded when find quote, separated by comma
+
+components:
+  schemas:
+    BaseSwapData:
+      type: object
+      properties:
+        srcToken:
+          type: string
+          description: The input token for the swap
+        dstToken:
+          type: string
+          description: The output token for the swap
+        srcAmount:
+          type: string
+          description: The amount of input token for the swap in wei
+        dstAmount:
+          type: string
+          description: The amount of output token for the swap in wei
+        paths:
+          type: array
+          description: The sequence of swaps to be executed
+          items:
+            type: array
+            items:
+              type: object
+              properties:
+                srcToken:
+                  type: string
+                  description: The input token address for this swap
+                dstToken:
+                  type: string
+                  description: The output token address for this swap
+                srcAmount:
+                  type: string
+                  description: The amount of input token to be swapped through this hop, in wei
+                dstAmount:
+                  type: string
+                  description: The amount of output token received through swapping through this hop, in wei
+                source:
+                  type: string
+                  description: The exchange where this swap originated from
+
+    GetQuoteSuccess:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Response code
+        message:
+          type: string
+          description: Response message
+        requestId:
+          type: string
+          description: Internal request identity for tracing/troubleshooting
+        data:
+          description: Response data
+          $ref: "#/components/schemas/BaseSwapData"
+
+    GetSwapSuccess:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Response code
+        message:
+          type: string
+          description: Response message
+        requestId:
+          type: string
+          description: Internal request identity for tracing/troubleshooting
+        data:
+          description: Response data
+          allOf:
+            - $ref: "#/components/schemas/BaseSwapData"
+            - type: object
+              properties:
+                tx:
+                  type: object
+                  description: The transaction information for the swap
+                  properties:
+                    from:
+                      type: string
+                      description: The address of the sender
+                    to:
+                      type: string
+                      description: The address of the recipient, which is Kaia Aggregator's router address
+                    data:
+                      type: string
+                      description: The data to be sent with the transaction
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: The error code
+        message:
+          type: string
+          description: The error message
+        requestId:
+          type: string
+          description: Internal request identity for tracing/troubleshooting
+        details:
+          type: object
+          description: Optional object which contains the validation error, if any
+
+  examples:
+    SampleGetQuoteResponse:
+      code: "0"
+      message: "successfully"
+      data:
+        srcToken: 0x19aac5f612f524b754ca7e7c41cbfa2e981a4432
+        dstToken: 0x7eee60a000986e9efe7f5c90340738558c24317b
+        srcAmount: 1000000000
+        dstAmount: 1000952357
+        paths:
+          - - srcToken: 0x19aac5f612f524b754ca7e7c41cbfa2e981a4432
+              dstToken: 0x7eee60a000986e9efe7f5c90340738558c24317b
+              srcAmount: 1000000000
+              dstAmount: 1000952357
+              source: "dragon_swap_v3"
+              metadata: {}
+
+    SampleGetSwapResponse:
+      code: 0
+      message: "successfully"
+      data:
+        srcToken: 0x19aac5f612f524b754ca7e7c41cbfa2e981a4432
+        dstToken: 0x7eee60a000986e9efe7f5c90340738558c24317b
+        srcAmount: 1000000000
+        dstAmount: 1000952357
+        tx: # TODO: Fill example data
+          from:
+          to: 0x03c1938cc4d0a0ba7f4812c1aedad4a5877d6863
+          data:
+          value:
+          gas:
+          gasPrice:
+        paths:
+          - - srcToken: 0x19aac5f612f524b754ca7e7c41cbfa2e981a4432
+              dstToken: 0x7eee60a000986e9efe7f5c90340738558c24317b
+              srcAmount: 1000000000
+              dstAmount: 1000952357
+              source: "dragon_swap_v3"
+              metadata: {}
+
+  errors:
+    "4000":
+      description: "The validation for query parameters fails"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+            example:
+              code: 4000
+              message: "bad request"
+              requestId: "6a0bbb79-a233-4596-acde-d08007c35fe8"
+    "4001":
+      description: "Query parameters are invalid"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+            example:
+              code: 4001
+              message: "unable to bind query parameters"
+              requestId: "6a0bbb79-a233-4596-acde-d08007c35fe8"
+    "4002":
+      description: "Route not found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+            example:
+              code: 4002
+              message: "route not found"
+              requestId: "6a0bbb79-a233-4596-acde-d08007c35fe8"
+    "4003":
+      description: "No available source"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+            example:
+              code: 4003
+              message: "no available source"
+              requestId: "6a0bbb79-a233-4596-acde-d08007c35fe8"
+    "4004":
+      description: "No available pool"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+            example:
+              code: 4004
+              message: "no available pool"
+              requestId: "6a0bbb79-a233-4596-acde-d08007c35fe8"
+    "4990":
+      description: "Request was canceled by client"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+            example:
+              code: 4990
+              message: "request was canceled"
+              requestId: "6a0bbb79-a233-4596-acde-d08007c35fe8"

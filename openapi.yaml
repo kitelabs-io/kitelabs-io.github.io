@@ -135,8 +135,7 @@ paths:
             type: string
           in: query
           name: recipient
-          description: The recipient address of the output token
-          required: true
+          description: The recipient address of the output token. If not specified, the recipient address will be the same as the origin address.
         - schema:
             type: string
           in: query

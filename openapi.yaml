@@ -10,7 +10,7 @@ info:
   contact:
     name: kitelabs # TODO: Update this
 servers:
-  - url: "http://kaia.kitelabs.io"
+  - url: "http://pyxis-kaia.kitelabs.io"
 tags:
   - name: Kaia Aggregator
     description: APIs for Kaia Aggregator
@@ -20,7 +20,7 @@ paths:
     get:
       tags:
         - Kaia Aggregator
-      summary: "[V1] Get Quote"
+      summary: "Get Quote"
       description: Obtain the quote details when exchanging between two tokens.
       operationId: getQuote
       responses:
@@ -80,7 +80,7 @@ paths:
     get:
       tags:
         - Kaia Aggregator
-      summary: "[V1] Get Swap"
+      summary: "Get Swap"
       description: Obtain the quote details and transaction information necessary to execute a token exchange.
       operationId: getSwap
       responses:
@@ -130,6 +130,12 @@ paths:
           in: query
           name: origin
           description: An EOA address that initiate the transaction
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: recipient
+          description: The recipient address of the output token
           required: true
         - schema:
             type: string

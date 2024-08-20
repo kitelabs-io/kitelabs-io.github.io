@@ -8,7 +8,7 @@ info:
     url: "https://www.apache.org/licenses/LICENSE-2.0.html"
   version: "1.0.0"
   contact:
-    name: kitelabs # TODO: Update this
+    name: kitelabs
 servers:
   - url: "http://pyxis-kaia.kitelabs.io"
 tags:
@@ -151,6 +151,123 @@ paths:
           in: query
           name: excludedSources
           description: Sources to excluded when find quote, separated by comma
+        - schema:
+            type: string
+          in: query
+          name: feeToken
+          description: |
+            Address of the token to take fee. Should match either srcToken or dstToken
+        - schema:
+            type: string
+          in: query
+          name: feeInBPS
+          description: |
+            The amount of fee to be taken in basis points
+        - schema:
+            type: string
+          in: query
+          name: feeRecipient
+          description: |
+            Address to receive the fee
+
+  "/v1/tokens":
+    get:
+      tags:
+        - Kaia Aggregator
+      summary: "Get Tokens"
+      description: Retrieve tokens based on IDs, cursor, count, and pattern
+      operationId: getTokens
+      parameters:
+        - in: query
+          name: ids
+          schema:
+            type: array
+            items:
+              type: string
+          description: List of token IDs to retrieve. If omit, all tokens will be retrieved.
+          required: false
+        - in: query
+          name: cursor
+          schema:
+            type: integer
+            format: uint64
+          description: Cursor for pagination.
+          required: false
+        - in: query
+          name: count
+          schema:
+            type: integer
+            format: int64
+          description: Number of tokens to retrieve.
+          required: false
+        - in: query
+          name: pattern
+          schema:
+            type: string
+          description: Pattern to match token names.
+          required: false
+      responses:
+        "200":
+          description: A list of tokens and the next cursor for pagination.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokenById:
+                    type: object
+                    additionalProperties:
+                      $ref: "#/components/schemas/Token"
+                  nextCursor:
+                    type: integer
+                    format: uint64
+  "/v1/admin/tokens":
+    put:
+      tags:
+        - Kaia Aggregator
+      summary: Update token details
+      operationId: updateToken
+      requestBody:
+        description: Token details to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTokenParams"
+      responses:
+        "200":
+          description: Successfully updated the token.
+
+  /v1/sources:
+    get:
+      tags:
+        - Kaia Aggregator
+      summary: Get sources
+      operationId: getSources
+      responses:
+        "200":
+          description: A list of sources indexed by their IDs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetSourceResult"
+
+  /v1/admin/sources:
+    put:
+      tags:
+        - Kaia Aggregator
+      summary: Update source details
+      operationId: updateSource
+      requestBody:
+        description: Source details to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSourceParams"
+      responses:
+        "200":
+          description: Successfully updated the source.
 
 components:
   schemas:
@@ -241,6 +358,60 @@ components:
                       type: string
                       description: The data to be sent with the transaction
 
+    UpdateTokenParams:
+      type: object
+      properties:
+        token:
+          $ref: "#/components/schemas/Token"
+
+    Token:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the token.
+        decimals:
+          type: integer
+          format: uint8
+          description: Number of decimal places the token supports.
+        name:
+          type: string
+          description: Name of the token.
+        symbol:
+          type: string
+          description: Symbol of the token.
+        imageUrl:
+          type: string
+          description: URL to an image representing the token.
+          nullable: true
+
+    GetSourceResult:
+      type: object
+      properties:
+        sourceById:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/Source"
+
+    UpdateSourceParams:
+      type: object
+      properties:
+        source:
+          $ref: "#/components/schemas/Source"
+
+    Source:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the source.
+        name:
+          type: string
+          description: Name of the source.
+        imageUrl:
+          type: string
+          description: URL to an image representing the source.
+
     Error:
       type: object
       properties:
@@ -282,13 +453,11 @@ components:
         dstToken: 0x7eee60a000986e9efe7f5c90340738558c24317b
         srcAmount: 1000000000
         dstAmount: 1000952357
-        tx: # TODO: Fill example data
+        tx:
           from:
           to: 0x03c1938cc4d0a0ba7f4812c1aedad4a5877d6863
           data:
           value:
-          gas:
-          gasPrice:
         paths:
           - - srcToken: 0x19aac5f612f524b754ca7e7c41cbfa2e981a4432
               dstToken: 0x7eee60a000986e9efe7f5c90340738558c24317b

@@ -221,24 +221,8 @@ paths:
                   nextCursor:
                     type: integer
                     format: uint64
-  "/v1/admin/tokens":
-    put:
-      tags:
-        - Kaia Aggregator
-      summary: Update token details
-      operationId: updateToken
-      requestBody:
-        description: Token details to update
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateTokenParams"
-      responses:
-        "200":
-          description: Successfully updated the token.
 
-  /v1/sources:
+  "/v1/sources":
     get:
       tags:
         - Kaia Aggregator
@@ -251,23 +235,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetSourceResult"
-
-  /v1/admin/sources:
-    put:
-      tags:
-        - Kaia Aggregator
-      summary: Update source details
-      operationId: updateSource
-      requestBody:
-        description: Source details to update
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateSourceParams"
-      responses:
-        "200":
-          description: Successfully updated the source.
 
 components:
   schemas:
@@ -357,12 +324,9 @@ components:
                     data:
                       type: string
                       description: The data to be sent with the transaction
-
-    UpdateTokenParams:
-      type: object
-      properties:
-        token:
-          $ref: "#/components/schemas/Token"
+                    value:
+                      type: string
+                      description: The value to be sent with the transaction
 
     Token:
       type: object
@@ -392,12 +356,6 @@ components:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/Source"
-
-    UpdateSourceParams:
-      type: object
-      properties:
-        source:
-          $ref: "#/components/schemas/Source"
 
     Source:
       type: object

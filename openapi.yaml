@@ -160,7 +160,7 @@ paths:
         - schema:
             type: string
           in: query
-          name: feeInBPS
+          name: feeInBps
           description: |
             The amount of fee to be taken in basis points
         - schema:
